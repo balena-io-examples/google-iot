@@ -1,0 +1,17 @@
+{
+  "name": "googleiot-resin",
+  "version": "1.0.0",
+  "description": "Google IoT Core resin.io integration example",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Chris Chabot <chrisc@resin.io>",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "googleapis": "^32.0.0",
+    "express": "*",
+    "jsonwebtoken": "*",
+    "mqtt": "*"
+  }
+}
