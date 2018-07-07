@@ -1,25 +1,24 @@
+// Required for connecting with Google Cloud IoT
 const fs = require('fs');
-const express = require('express');
-const app = express();
 const {google} = require('googleapis');
-const util = require('util');
 const jwt = require('jsonwebtoken');
 const mqtt = require('mqtt');
 
-// Config
-const serviceAccountJson = '/data/service.json';
+// Pull the Google Cloud IoY config from the device's env variables
 const cloudRegion = process.env.GOOGLE_IOT_REGION;
 const projectId = process.env.GOOGLE_IOT_PROJECT;
 const registryId = process.env.GOOGLE_IOT_REGISTRY;
 const deviceId = process.env.RESIN_DEVICE_NAME_AT_INIT;
+// Private key file that was created the first time start.sh was run.
+const privateKeyFile = '/data/rsa-priv.pem';
 
+// MQTT server config for Google Cloud IoT, the server also supports port 443 if outgoing connections on 8883 are blocked
 const mqttBridgeHostname = 'mqtt.googleapis.com';
 const mqttBridgePort = '8883';
 const messageType = 'events';
 const tokenExpMins = '20';
 const numMessages = '10';
 const algorithm = 'RS256';
-const privateKeyFile = '/data/rsa-priv.pem';
 
 // The initial backoff time after a disconnection occurs, in seconds.
 var MINIMUM_BACKOFF_TIME = 1;
@@ -36,9 +35,9 @@ var backoffTime = 1;
 // Whether an asynchronous publish chain is in progress.
 var publishChainInProgress = false;
 
-// Create a Cloud IoT Core JWT for the given project id, signed with the given
-// private key.
-// [START iot_mqtt_jwt]
+var cpuLoad = memoryUsage = 0;
+
+// Create a Cloud IoT Core JWT for the given project id, signed with the given private key.
 function createJwt(projectId, privateKeyFile, algorithm) {
    // Create a JWT to authenticate this device. The device will be disconnected
    // after the token expires, and will have to reconnect with a new token. The
@@ -51,34 +50,26 @@ function createJwt(projectId, privateKeyFile, algorithm) {
    const privateKey = fs.readFileSync(privateKeyFile);
    return jwt.sign(token, privateKey, {algorithm: algorithm});
 }
-// [END iot_mqtt_jwt]
 
 // Publish numMessages messages asynchronously, starting from message
 // messagesSent.
-// [START iot_mqtt_publish]
-function publishAsync(messagesSent, numMessages) {
-   // If we have published enough messages or backed off too many times, stop.
-   if (messagesSent > numMessages || backoffTime >= MAXIMUM_BACKOFF_TIME) {
-      if (backoffTime >= MAXIMUM_BACKOFF_TIME) {
-         console.log('Backoff time is too high. Giving up.');
-      }
-      //console.log('Closing connection to MQTT. Goodbye!');
-      //client.end();
-      publishChainInProgress = false;
-      return;
-   }
+function publishAsync() {
 
    // Publish and schedule the next publish.
    publishChainInProgress = true;
    var publishDelayMs = 0;
    if (shouldBackoff) {
       publishDelayMs = 1000 * (backoffTime + Math.random());
-      backoffTime *= 2;
+      if (backoffTime <= MAXIMUM_BACKOFF_TIME) {
+         backoffTime *= 2;
+      }
       console.log(`Backing off for ${publishDelayMs}ms before publishing.`);
    }
 
    setTimeout(function() {
-      const payload = `${registryId}/${deviceId}-payload-${messagesSent}`;
+      let cpuLoad = getCpuLoad();
+      let memoryUsage = getMemoryInfo();
+      const payload = '${registryId}/${deviceId}-device-info' + "\ncpuLoad=" + cpuLoad + "\nmemoryUsage=" + memoryUsage + '%';
 
       // Publish "payload" to the MQTT topic. qos=1 means at least once delivery.
       // Cloud IoT Core also supports qos=0 for at most once delivery.
@@ -93,11 +84,11 @@ function publishAsync(messagesSent, numMessages) {
       });
 
       var schedulePublishDelayMs = messageType === 'events'
-         ? 1000
-         : 2000;
+         ? 2000
+         : 4000;
       setTimeout(function() {
-         // [START iot_mqtt_jwt_refresh]
          let secsFromIssue = parseInt(Date.now() / 1000) - iatTime;
+         // Refresh the JWT token if it has expired, and re-connect the mqtt client
          if (secsFromIssue > tokenExpMins * 60) {
             iatTime = parseInt(Date.now() / 1000);
             console.log(`\tRefreshing token after ${secsFromIssue} seconds.`);
@@ -108,11 +99,11 @@ function publishAsync(messagesSent, numMessages) {
 
             client.on('connect', (success) => {
                console.log('connect');
-               client.subscribe(subs);
+               client.subscribe(mqttTopic);
                if (!success) {
                   console.log('Client not connected...');
                } else if (!publishChainInProgress) {
-                  publishAsync(1, numMessages);
+                  publishAsync();
                }
             });
 
@@ -133,8 +124,7 @@ function publishAsync(messagesSent, numMessages) {
                // Note: logging packet send is very verbose
             });
          }
-         // [END iot_mqtt_jwt_refresh]
-         publishAsync(messagesSent + 1, numMessages);
+         publishAsync();
       }, schedulePublishDelayMs);
    }, publishDelayMs);
 }
@@ -168,20 +158,15 @@ let connectionArgs = {
 // Create a client, and connect to the Google MQTT bridge.
 let iatTime = parseInt(Date.now() / 1000);
 let client = mqtt.connect(connectionArgs);
-var subs = [];
-subs[mqttTopic] = 1;
-subs[`/devices/${deviceId}/config`] = 1;
-subs[`/projects/resinio-451e8/topics/info`] = 1;
-client.subscribe(subs);
+client.subscribe(mqttTopic);
 
 client.on('connect', (success) => {
    console.log('connect');
    if (!success) {
       console.log('Client not connected...');
    } else if (!publishChainInProgress) {
-      // Subscribe to the /devices/{device-id}/config topic to receive config updates.
-      client.subscribe(subs);
-      publishAsync(1, numMessages);
+      client.subscribe(mqttTopic);
+      publishAsync();
    }
 });
 
@@ -202,13 +187,21 @@ client.on('packetsend', () => {
    // Note: logging packet send is very verbose
 });
 
-/*app.get('/', function(req, res) {
-   res.send('Messages in buffer:<br><pre>' + messageBuffer + '</pre>');
-});
+//
+function getCpuLoad() {
+   var text = fs.readFileSync("/proc/loadavg", "utf8");
+   // get load for the last minute
+   const load = parseFloat(text.match(/(\d+\.\d+)\s+/)[1]);
+   return load.toString();
+};
 
-//start a web server on port 80 and log its start to our console
-var server = app.listen(80, function() {
-   var port = server.address().port;
-   console.log('Google IoT core example app listening on port ', port);
-});
-*/
+function getMemoryInfo() {
+   var text = fs.readFileSync("/proc/meminfo", "utf8");
+   // Parse total and free memory from /proc/meminfo, and calculate percentage used
+   const matchTotal = text.match(/MemTotal:\s+([0-9]+)/);
+   const matchFree = text.match(/MemAvailable:\s+([0-9]+)/);
+   const total = parseInt(matchTotal[1], 10);
+   const free = parseInt(matchFree[1], 10);
+   const percentageUsed = Math.round((total - free) / total * 100);
+   return percentageUsed.toString();
+};
