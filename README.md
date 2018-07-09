@@ -71,11 +71,15 @@ You're now ready to provision your resin.io device and push the code to the appl
 ## Viewing published messages
 
 Once the device is online, the sample app will start pushing event messages with the CPU load and memory usage for the
-device, which you can see in the Logs viewer for the device in the resin dashboard.
+device, which will be visible in the logs viewer in the resin dashboard.
 
-You can retrieve and view published messages from Pub/Sub using the gcloud cli: Go to the GCP Pub/Sub page and
-click on `my-device-events` topic, and click `Create Subscription` in the top toolbar, and enter `my-subscription` as the
-subscription name, and click Create. You can then view the messages by running the following command in your terminal:
+You can retrieve and view published messages from Pub/Sub using the gcloud CLI:
+1. Go to the GCP Pub/Sub page and click on `my-device-events` topic.
+2. Click `Create Subscription` in the top toolbar.
+3. Enter `my-subscription` as the subscription name.
+4. Click Create.
+
+You can then view the messages by running the following command in your terminal:
 
 ```
 # gcloud pubsub subscriptions pull --limit 100 --auto-ack projects/resinio-451e8/subscriptions/my-subscription

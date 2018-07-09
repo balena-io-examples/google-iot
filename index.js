@@ -69,12 +69,12 @@ function publishAsync() {
    setTimeout(function() {
       let cpuLoad = getCpuLoad();
       let memoryUsage = getMemoryInfo();
-      const payload = '${registryId}/${deviceId}-device-info' + "\ncpuLoad=" + cpuLoad + "\nmemoryUsage=" + memoryUsage + '%';
+      const payload = {'deviceId' : deviceId, 'cpuLoad' : cpuLoad, 'memoryUsage' : memoryUsage };
 
       // Publish "payload" to the MQTT topic. qos=1 means at least once delivery.
       // Cloud IoT Core also supports qos=0 for at most once delivery.
       console.log('Publishing message:', payload);
-      client.publish(mqttTopic, payload, {
+      client.publish(mqttTopic, JSON.stringify(payload), {
          qos: 1
       }, function(err) {
          if (!err) {
