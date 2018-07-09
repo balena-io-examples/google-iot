@@ -79,10 +79,10 @@ You can retrieve and view published messages from Pub/Sub using the gcloud CLI:
 3. Enter `my-subscription` as the subscription name.
 4. Click Create.
 
-You can then view the messages by running the following command in your terminal:
+You can then view the messages by running the following command in your terminal, replacing PROJECT_ID with your project ID:
 
 ```
-# gcloud pubsub subscriptions pull --limit 100 --auto-ack projects/resinio-451e8/subscriptions/my-subscription
+# gcloud pubsub subscriptions pull --limit 100 --auto-ack projects/PROJECT_ID/subscriptions/my-subscription
 ```
 
 ## Next steps
