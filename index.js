@@ -8,7 +8,7 @@ const mqtt = require('mqtt');
 const cloudRegion = process.env.GOOGLE_IOT_REGION;
 const projectId = process.env.GOOGLE_IOT_PROJECT;
 const registryId = process.env.GOOGLE_IOT_REGISTRY;
-const deviceId = process.env.RESIN_DEVICE_NAME_AT_INIT;
+const deviceId = process.env.RESIN_DEVICE_UUID;
 // Private key file that was created the first time start.sh was run.
 const privateKeyFile = '/data/rsa-priv.pem';
 

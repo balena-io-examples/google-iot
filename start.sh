@@ -6,7 +6,7 @@ if [ ! -f /data/service.json ]; then
    if [ -z "$GOOGLE_IOT_SERVICE_JSON" ]; then
    	echo "Missing GOOGLE_IOT_SERVICE_JSON environment variable, login to https://dashboard.resin.io/ to create it"
    	exit
-   elif [ -z "$RESIN_DEVICE_NAME_AT_INIT" ]; then
+   elif [ -z "$RESIN_DEVICE_UUID" ]; then
    	echo "No device name supplied, are you running this in ResinOS?"
    	exit
    elif [ -z "$GOOGLE_IOT_PROJECT" ]; then
@@ -40,7 +40,7 @@ if [ ! -f /data/service.json ]; then
    openssl ec -in rsa-ec_private.pem -pubout -out rsa-ec_public.pem
 
    # Register as Google IoT device with the keys created above
-   gcloud iot devices create $RESIN_DEVICE_NAME_AT_INIT \
+   gcloud iot devices create $RESIN_DEVICE_UUID \
          --project=$GOOGLE_IOT_PROJECT \
          --region=$GOOGLE_IOT_REGION \
          --registry=$GOOGLE_IOT_REGISTRY \
