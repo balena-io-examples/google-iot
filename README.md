@@ -1,9 +1,9 @@
-# Google Cloud IoT integration with resin.io
+# Google Cloud IoT integration with balena
 
 See https://cloud.google.com/solutions/iot/ for more information on Google Cloud IoT
 
 
-This project shows you how to use Google Cloud IoT with resin.io to automatically create a Cloud IoT device on first boot. It also shows you how to run a sample to connect a device and publish device telemetry events.
+This project shows you how to use Google Cloud IoT with balena to automatically create a Cloud IoT device on first boot. It also shows you how to run a sample to connect a device and publish device telemetry events.
 
 ## Before you begin
 
@@ -55,8 +55,8 @@ You've just created a device registry with a Cloud Pub/Sub topic for publishing 
 8. Create a new service account, and assign _only_ the `Create IoT Device` role to it, this limited scope is required as these credentials will be available on the device, and could potentially get exposed if the device is physically compromised
 9. Download the credentials json file
 
-## Set up your resin application's environment
-Go to the [resin dashboard](https://dashboard.resin.io/apps) and create or select your project
+## Set up your balena application's environment
+Go to the [balena dashboard](https://dashboard.balena-cloud.com/apps) and create or select your project
 
 Click Environment Variables and create the following keys and matching values:
 1. `GOOGLE_IOT_PROJECT` and enter the Project Id for your GCP Project, you can find that on the [GCP Home page](https://console.cloud.google.com/home)
@@ -66,12 +66,12 @@ Click Environment Variables and create the following keys and matching values:
 
 ## Provision your device
 
-You're now ready to provision your resin.io device and push the code to the application. Once it's started up it'll automatically register it's self with Google Cloud IoT as a device, and allow you to push telemetry data to the pubsub channel you've created.
+You're now ready to provision your balena device and push the code to the application. Once it's started up it'll automatically register it's self with Google Cloud IoT as a device, and allow you to push telemetry data to the pubsub channel you've created.
 
 ## Viewing published messages
 
 Once the device is online, the sample app will start pushing event messages with the CPU load and memory usage for the
-device, which will be visible in the logs viewer in the resin dashboard.
+device, which will be visible in the logs viewer in the balena dashboard.
 
 You can retrieve and view published messages from Pub/Sub using the gcloud CLI:
 1. Go to the GCP Pub/Sub page and click on `my-device-events` topic.
