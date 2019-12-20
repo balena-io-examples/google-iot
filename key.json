@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "balena-gcp-test",
+  "private_key_id": "aa6941c0a53784200dae81f74f40581520a7ccee",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDjso0Vt+JJPF9V\nqnSOTnxN3/Nt9uwWXJ+3CwaeGQlhIsHcz9LNly+Gr4ez8GX7/Cl/j/AEmnbEMr71\nDJDl7xJ84G88ZAn5W8/RA6ddn3Y4yKFAbt0bO4HDV9Wk4ufONrKW3JmQjsozwHt6\nmMjqGxsjxK99B5h1MiIeRoSoXZbTLh+022IAtoUiUa/xLA7QPlubBKJOfEWIo24X\nJmszSTp3N1Ia1v9N+bvTIy0Qa6rLEXLFOL7LVDfah7QIcRezkYfs26GkTFDuz54G\ntI7AZ1xb6UJ4tgGLd8EeE0J+79E+BQu18PK6+TjFJnMU8kKdL2HmZ7xN3D9aXPxX\nYuMbLLUBAgMBAAECggEAZ37Gcws4bzpiSOFoBjD1fj4feymjiMyECiKYWO8fXMf8\nHx5Vfn5MK2eIgojwChfFUwZ9PdJpzmcUdfTGvcSrfhhTZzs/b1jEfogvIDZ1eXz0\nEoHxvUmQg1ZetQov/ALPrRPLNzI4BUrltUVR+VrlvJ3PeECmEwr9CA7ciFy1y/mM\nx/Fr6kcMlT4dc8MlM+o+wPxUE1coTLKsmWErZhfiq9/q/fWNwu9VghYPEOeFF1cg\nRNOvzpePCQY2hq52a/BzahGB48XHJg0K0Up3ayZ/eFs9prhoEHhuSInvUKyWIXM5\nV10HGKyJnons3cfixF5+pPuARAKRvwGV1boNvmGhkwKBgQD+SzNZofV9ac9SAa3P\nngeMmhP6utvUZzieLBAYjtDcRqsCgcWFKRpZlbGJ/EWorwwb7LHhd59ifDTSpH5y\ns8sOmwU0TJZMA1814VZplbIMh+amVgAcmpiYGZXNv8ksRUNZCJE9jeLLBC5Ywfi8\nR5aQ5U6o52uvAYMCM8WAyVkIJwKBgQDlOaqLGEemnHljj7ELux636OpAaNTP42qn\nqfbmq6THbs9uO2TmlQxX5MRW3SRwnH1QUJjfOU1+qeaeOtbCuwrOMFOHeFPqfq5v\nQBIn65CsxucUR2f0Hmtm+KvqgQJYaq//C96TaKwi+AV8ADemWDLajn8seQrr3gzT\nDAecBimqlwKBgFRZx4fE5HScY4vVSL1ksyZdeaEi2IalUq+M+C3dOcTHoDQtrcJU\n9wueTwzxZH3mysJ8iii7EGCPyMnSjKspnoKSw3Ass3I1cCCkRZCyeiQT9FtajaDv\nWwyg+AMOygFoXEWtRNhBN2iWU3VXqlVx/azEk4oNcbfUbYuOdsYYg/LjAoGBANbN\nDABeFz6M4L+odirdBTMnwuPqmInavSYygli0PaxZLW5JoArnXvK6QDZ58lzIeDGb\n5TVA+Fqaka5yyq8eIUkIRi3rVw+l+IXtz1WzTBZsKTx6kXJUUybiHg+ZJv59s0DX\n+ZG/A5edPV5uwbdSbQ0bfRbKsq5GnVPjsPnHWKIvAoGANjtyXCRaikAYX5/aSwub\nEMF2jkmHKXYXzi9lTi/zYw9YegSTPowPnLPSRAWKr5NR5EA8MaxtF57u+RnvPIX1\nO/k45/cQfFGNCfo5LO6aien7FmSHmqph2nYqnuyYojtuKJ4CyCkD/iJp/JMWvaj7\nWa91+IGxoeHg4E5Z7HyxjU0=\n-----END PRIVATE KEY-----\n",
+  "client_email": "balena-sa@balena-gcp-test.iam.gserviceaccount.com",
+  "client_id": "105286162659627685183",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/balena-sa%40balena-gcp-test.iam.gserviceaccount.com"
+}
