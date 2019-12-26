@@ -1,16 +1,38 @@
 {
-  "name": "googleiot-resin",
+  "name": "balena-google-iotcore",
   "version": "1.0.0",
-  "description": "Google IoT Core resin.io integration example",
+  "description": "Sample project showcasing Google IoT Core integration with balena",
   "main": "index.js",
+  "dependencies": {
+    "@google-cloud/iot": "^1.5.0",
+    "jsonwebtoken": "^8.5.1",
+    "mqtt": "^3.0.0",
+    "shelljs": "^0.8.3"
+  },
+  "devDependencies": {
+    "standard": "^14.3.1"
+  },
   "scripts": {
+    "gcp-setup": "./scripts/gcp-setup.sh",
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Chris Chabot <chrisc@resin.io>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/balena-io-projects/google-iot.git"
+  },
+  "keywords": [
+    "balena",
+    "balenaCloud",
+    "google",
+    "iotcore",
+    "iot",
+    "gcp"
+  ],
+  "author": "Tomás Migone <tomas@balena.io>",
   "license": "Apache-2.0",
-  "dependencies": {
-    "googleapis": "^32.0.0",
-    "jsonwebtoken": "*",
-    "mqtt": "*"
-  }
+  "bugs": {
+    "url": "https://github.com/balena-io-projects/google-iot/issues"
+  },
+  "homepage": "https://github.com/balena-io-projects/google-iot#readme"
 }

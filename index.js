@@ -1,207 +1,77 @@
-// Required for connecting with Google Cloud IoT
-const fs = require('fs');
-const {google} = require('googleapis');
-const jwt = require('jsonwebtoken');
-const mqtt = require('mqtt');
+const GoogleIoT = require('./lib/GoogleIoT.js')
+const MQTTBridge = require('./lib/MQTTBridge.js')
+const fs = require('fs')
 
-// Pull the Google Cloud IoY config from the device's env variables
-const cloudRegion = process.env.GOOGLE_IOT_REGION;
-const projectId = process.env.GOOGLE_IOT_PROJECT;
-const registryId = process.env.GOOGLE_IOT_REGISTRY;
-const deviceId = process.env.RESIN_DEVICE_UUID;
-// Private key file that was created the first time start.sh was run.
-const privateKeyFile = '/data/rsa-priv.pem';
+let google = new GoogleIoT({
+  device: process.env.RESIN_DEVICE_UUID,
+  gcpProject: process.env.GOOGLE_IOT_PROJECT,
+  gcpRegion: process.env.GOOGLE_IOT_REGION,
+  gcpRegistry: process.env.GOOGLE_IOT_REGISTRY,
+  gcpServiceAccount: process.env.GOOGLE_IOT_SERVICE_ACCOUNT_TOKEN,
+})
 
-// MQTT server config for Google Cloud IoT, the server also supports port 443 if outgoing connections on 8883 are blocked
-const mqttBridgeHostname = 'mqtt.googleapis.com';
-const mqttBridgePort = '8883';
-const messageType = 'events';
-const tokenExpMins = '20';
-const numMessages = '10';
-const algorithm = 'RS256';
+let mqtt = new MQTTBridge({
+  device: process.env.RESIN_DEVICE_UUID,
+  gcpProject: process.env.GOOGLE_IOT_PROJECT
+})
 
-// The initial backoff time after a disconnection occurs, in seconds.
-var MINIMUM_BACKOFF_TIME = 1;
+async function start () {
+  // Ensure our device is properly registered and configured on Google IoT Core cloud service.
+  await google.registerDevice()
 
-// The maximum backoff time before giving up, in seconds.
-var MAXIMUM_BACKOFF_TIME = 32;
+  // Configure MQTT client before connecting to IoT Core server
+  mqtt.setClientId(google.getDevicePath())  // Get full path to device on IoT Core
+  await mqtt.connect()
 
-// Whether to wait with exponential backoff before publishing.
-var shouldBackoff = false;
+  // Optional callback, fired every time we receive a message on any topic
+  mqtt.setMessageCallback((topic, message) => {
+    console.log(`Received message --- Topic: ${topic} - Message: `, Buffer.from(message, 'base64').toString('ascii'))
 
-// The current backoff time.
-var backoffTime = 1;
+    // Update the device state upon receiving a config message
+    // A good practise is to update the device state to reflect that the device got the config.
+    if (topic.endsWith('config')) {
+      mqtt.publishState({ deviceId: mqtt.device.id, timestamp: new Date().toString() })
+    }
+  })
 
-// Whether an asynchronous publish chain is in progress.
-var publishChainInProgress = false;
+  // Publish device data every X seconds to Google IoT Core
+  setInterval(() => {
+    mqtt.publishTelemetry({
+      cpuLoad: getCpuLoad(),
+      memoryInfo: getMemoryInfo(),
+    })
+  }, 30 * 1000)
 
-var cpuLoad = memoryUsage = 0;
 
-// Create a Cloud IoT Core JWT for the given project id, signed with the given private key.
-function createJwt(projectId, privateKeyFile, algorithm) {
-   // Create a JWT to authenticate this device. The device will be disconnected
-   // after the token expires, and will have to reconnect with a new token. The
-   // audience field should always be set to the GCP project id.
-   const token = {
-      'iat': parseInt(Date.now() / 1000),
-      'exp': parseInt(Date.now() / 1000) + 20 * 60, // 20 minutes
-      'aud': projectId
-   };
-   const privateKey = fs.readFileSync(privateKeyFile);
-   return jwt.sign(token, privateKey, {algorithm: algorithm});
+  console.log('Startup completed!')
 }
 
-// Publish numMessages messages asynchronously, starting from message
-// messagesSent.
-function publishAsync() {
-
-   // Publish and schedule the next publish.
-   publishChainInProgress = true;
-   var publishDelayMs = 0;
-   if (shouldBackoff) {
-      publishDelayMs = 1000 * (backoffTime + Math.random());
-      if (backoffTime <= MAXIMUM_BACKOFF_TIME) {
-         backoffTime *= 2;
-      }
-      console.log(`Backing off for ${publishDelayMs}ms before publishing.`);
-   }
-
-   setTimeout(function() {
-      let cpuLoad = getCpuLoad();
-      let memoryUsage = getMemoryInfo();
-      const payload = {'deviceId' : deviceId, 'cpuLoad' : cpuLoad, 'memoryUsage' : memoryUsage };
-
-      // Publish "payload" to the MQTT topic. qos=1 means at least once delivery.
-      // Cloud IoT Core also supports qos=0 for at most once delivery.
-      console.log('Publishing message:', payload);
-      client.publish(mqttTopic, JSON.stringify(payload), {
-         qos: 1
-      }, function(err) {
-         if (!err) {
-            shouldBackoff = false;
-            backoffTime = MINIMUM_BACKOFF_TIME;
-         }
-      });
-
-      var schedulePublishDelayMs = messageType === 'events'
-         ? 2000
-         : 4000;
-      setTimeout(function() {
-         let secsFromIssue = parseInt(Date.now() / 1000) - iatTime;
-         // Refresh the JWT token if it has expired, and re-connect the mqtt client
-         if (secsFromIssue > tokenExpMins * 60) {
-            iatTime = parseInt(Date.now() / 1000);
-            console.log(`\tRefreshing token after ${secsFromIssue} seconds.`);
-
-            client.end();
-            connectionArgs.password = createJwt(projectId, privateKeyFile, algorithm);
-            client = mqtt.connect(connectionArgs);
-
-            client.on('connect', (success) => {
-               console.log('connect');
-               client.subscribe(mqttTopic);
-               if (!success) {
-                  console.log('Client not connected...');
-               } else if (!publishChainInProgress) {
-                  publishAsync();
-               }
-            });
-
-            client.on('close', () => {
-               console.log('close');
-               shouldBackoff = true;
-            });
-
-            client.on('error', (err) => {
-               console.log('error', err);
-            });
-
-            client.on('message', (topic, message, packet) => {
-               console.log('message received: ', Buffer.from(message, 'base64').toString('ascii'));
-            });
-
-            client.on('packetsend', () => {
-               // Note: logging packet send is very verbose
-            });
-         }
-         publishAsync();
-      }, schedulePublishDelayMs);
-   }, publishDelayMs);
+function getCpuLoad () {
+  // Will probably fail for non Pi systems
+  try {
+    var text = fs.readFileSync("/proc/loadavg", "utf8")
+    // get load for the last minute
+    const load = parseFloat(text.match(/(\d+\.\d+)\s+/)[ 1 ])
+    return load.toString()
+  } catch (error) {
+    return "Error getting CPU load"
+  }
 }
-// [END iot_mqtt_publish]
 
-// The MQTT topic that this device will publish data to. The MQTT
-// topic name is required to be in the format below. The topic name must end in
-// 'state' to publish state and 'events' to publish telemetry. Note that this is
-// not the same as the device registry's Cloud Pub/Sub topic.
-const mqttTopic = `/devices/${deviceId}/${messageType}`;
+function getMemoryInfo () {
+  // Will probably fail for non Pi systems
+  try {
+    var text = fs.readFileSync("/proc/meminfo", "utf8")
+    // Parse total and free memory from /proc/meminfo, and calculate percentage used
+    const matchTotal = text.match(/MemTotal:\s+([0-9]+)/)
+    const matchFree = text.match(/MemAvailable:\s+([0-9]+)/)
+    const total = parseInt(matchTotal[ 1 ], 10)
+    const free = parseInt(matchFree[ 1 ], 10)
+    const percentageUsed = Math.round((total - free) / total * 100)
+    return percentageUsed.toString()
+  } catch (error) {
+    return "Error getting Memory Info"
+  }
+}
 
-// [START iot_mqtt_run]
-// The mqttClientId is a unique string that identifies this device. For Google
-// Cloud IoT Core, it must be in the format below.
-const mqttClientId = `projects/${projectId}/locations/${cloudRegion}/registries/${registryId}/devices/${deviceId}`;
-
-// With Google Cloud IoT Core, the username field is ignored, however it must be
-// non-empty. The password field is used to transmit a JWT to authorize the
-// device. The "mqtts" protocol causes the library to connect using SSL, which
-// is required for Cloud IoT Core.
-let connectionArgs = {
-   host: mqttBridgeHostname,
-   port: mqttBridgePort,
-   clientId: mqttClientId,
-   username: 'unused',
-   password: createJwt(projectId, privateKeyFile, algorithm),
-   protocol: 'mqtts',
-   secureProtocol: 'TLSv1_2_method'
-};
-
-// Create a client, and connect to the Google MQTT bridge.
-let iatTime = parseInt(Date.now() / 1000);
-let client = mqtt.connect(connectionArgs);
-client.subscribe(mqttTopic);
-
-client.on('connect', (success) => {
-   console.log('connect');
-   if (!success) {
-      console.log('Client not connected...');
-   } else if (!publishChainInProgress) {
-      client.subscribe(mqttTopic);
-      publishAsync();
-   }
-});
-
-client.on('close', () => {
-   console.log('close');
-   shouldBackoff = true;
-});
-
-client.on('error', (err) => {
-   console.log('error', err);
-});
-
-client.on('message', (topic, message, packet) => {
-   console.log('message received: ', Buffer.from(message, 'base64').toString('ascii'));
-});
-
-client.on('packetsend', () => {
-   // Note: logging packet send is very verbose
-});
-
-//
-function getCpuLoad() {
-   var text = fs.readFileSync("/proc/loadavg", "utf8");
-   // get load for the last minute
-   const load = parseFloat(text.match(/(\d+\.\d+)\s+/)[1]);
-   return load.toString();
-};
-
-function getMemoryInfo() {
-   var text = fs.readFileSync("/proc/meminfo", "utf8");
-   // Parse total and free memory from /proc/meminfo, and calculate percentage used
-   const matchTotal = text.match(/MemTotal:\s+([0-9]+)/);
-   const matchFree = text.match(/MemAvailable:\s+([0-9]+)/);
-   const total = parseInt(matchTotal[1], 10);
-   const free = parseInt(matchFree[1], 10);
-   const percentageUsed = Math.round((total - free) / total * 100);
-   return percentageUsed.toString();
-};
+start()

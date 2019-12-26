@@ -1,24 +1,19 @@
-FROM resin/%%RESIN_MACHINE_NAME%%-debian:stretch
+FROM balenalib/%%BALENA_MACHINE_NAME%%-alpine-node:11-build as build
 
-# Install the google cloud SDK
-RUN export CLOUD_SDK_REPO="cloud-sdk-stretch" && \
-    echo "deb http://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && \
-    curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
-    apt-get update -y && apt-get install google-cloud-sdk -y
+# Install node dependencies
+COPY package*.json ./
+RUN npm install --production && npm cache clean --force && rm -rf /tmp/*
 
-# Install LTS Node.js
-RUN curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash - && \
-   apt-get install -y nodejs && \
-   apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install npm modules and copy the app
-WORKDIR /usr/src/app
+FROM balenalib/%%BALENA_MACHINE_NAME%%-alpine-node:11-run as run
+VOLUME /data
 
-COPY package.json package.json
-RUN JOBS=MAX npm install --production --unsafe-perm && rm -rf /tmp/*
+# Install dependencies
+RUN install_packages openssl
 
-# Move app to filesystem
-COPY . ./
+WORKDIR /app
+COPY --from=build ./node_modules ./node_modules
+COPY . .
 
-# Start app
-CMD ["bash", "/usr/src/app/start.sh"]
+# Start the container
+CMD ["npm", "start"]

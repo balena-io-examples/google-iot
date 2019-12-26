@@ -3,7 +3,8 @@
 See https://cloud.google.com/solutions/iot/ for more information on Google Cloud IoT
 
 
-This project shows you how to use Google Cloud IoT with balena to automatically create a Cloud IoT device on first boot. It also shows you how to run a sample to connect a device and publish device telemetry events.
+This project shows you how to integrate balena with Google IoT Core. 
+use Google IoT Core with balena to automatically create a Cloud IoT device on first boot. It also shows you how to run a sample to connect a device and publish device telemetry events.
 
 ## Before you begin
 
