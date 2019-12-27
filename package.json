@@ -1,6 +1,6 @@
 {
   "name": "balena-google-iotcore",
-  "version": "1.0.0",
+  "version": "0.0.2",
   "description": "Sample project showcasing Google IoT Core integration with balena",
   "main": "index.js",
   "dependencies": {
