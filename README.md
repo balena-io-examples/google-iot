@@ -1,96 +1,132 @@
 # Google Cloud IoT integration with balena
 
-See https://cloud.google.com/solutions/iot/ for more information on Google Cloud IoT
+While the [balena](https://www.balena.io/what-is-balena) platform allows you to build, deploy and manage feets of devices, it has no interaction with the fleet's application at the data layer. This is where Google's IoT Core offering comes in handy.
+
+[Google IoT Core](https://cloud.google.com/iot/docs/) is a service designed to ingest data from connected devices and build rich applications that integrate with the other big data services of Google Cloud Platform. For more information visit [this](https://cloud.google.com/solutions/iot/) link.
+
+We can harness the synergy between both technology stacks to create a very powerful end to end solution that includes everything a fleet owner might need (from infrastructure to big data needs).
 
 
-This project shows you how to integrate balena with Google IoT Core. 
-use Google IoT Core with balena to automatically create a Cloud IoT device on first boot. It also shows you how to run a sample to connect a device and publish device telemetry events.
+This project shows you how to easily integrate your devices running balenaOS with Google IoT Core. 
 
-## Before you begin
+![diagram](img/diagram.png)
 
-1. In the GCP Console, go to the [Manage resources page](https://console.cloud.google.com/cloud-resource-manager) and select or create a new project.
+# Installation
 
-2. Make sure that [billing is enabled](https://cloud.google.com/billing/docs/how-to/modify-project) for your project.
+We've split the installation instructions in 4 different steps:
+1. Create and configure Google Cloud Platform (GCP) project
+2. Create balenaCloud application
+3. Provision your device
+4. Configure environment variables
 
-3. [Enable the Cloud IoT Core and Cloud Pub/Sub APIs](https://console.cloud.google.com/flows/enableapi?apiid=cloudiot.googleapis.com,pubsub).
+## 1. Create and configure Google Cloud Platform (GCP) project
 
+### Before you begin
+Before you begin you will need to create a GCP account and a billing account. The following links will help you get started with that:
+- [Create a Google account](https://support.google.com/accounts/answer/27441?hl=en)
+- [Create your billing account](https://cloud.google.com/billing/docs/how-to/manage-billing-account)
 
-## Set up your local environment and install prerequisites
-1. Install and initialize the [Cloud SDK](https://cloud.google.com/sdk/docs/). Cloud IoT Core requires version 173.0.0 or higher of the SDK.
+Note that you *don't* need a credit card to get started if you opt for the free trial.
 
-2. Set up a [Node.js](https://cloud.google.com/nodejs/docs/setup) development environment.
+### GCP setup script
+The process of setting up the required GCP products is a bit involved. For your convenience we created a script that automates all of the steps needed. You can review the source code of this script [here](scripts/gcp-setup.sh). If you are not comfortable running the script, you can check out [this](GCPManualSetup.md) step by step guide, it will walk you through manually configuring all that is needed.
 
-## Create a device registry
+This are all the steps that the script performs for you:
+- Request user login to GCP account
+- Select an existing project or create a new one
+- Link project to a billing account
+- Enable required API's: `compute`, `pubsub` and `cloudiotcore`
+- Select project region
+- Create PubSub telemetry and state topics
+- Create PubSub subscription for testing
+- Create IAM service account
+- Add roles and create keys for the service account
 
-1. Go to the [Google Cloud IoT Core page](https://console.cloud.google.com/iot) in GCP Console.
+The script is meant to be run only *once* on your development machine or any non edge, non cloud device. It will interactively guide you through all the steps required.
 
-2. Click Create a registry.
+Before running the script, make sure you have Google's SDK command line tool installed by running `gcloud --version` on your terminal (if you need to, [here](https://cloud.google.com/sdk/install) is how to install `gcloud`)
 
-3. Enter `my-registry` for the Registry ID.
+To run the script:
+```bash
+# If you have npm installed
+npm run gcp-setup
 
-4. Select `us-central1` for the Cloud region.
-
-5. Select `MQTT` for the Protocol.
-
-6. In the Telemetry topic dropdown list, select Create a topic.
-
-7. In the Create a topic dialog, enter `my-device-events` in the Name field.
-
-8. Click Create in the Create a topic dialog.
-
-9. The Device state topic and Certificate value fields are optional, so leave them blank.
-
-10. Click Create on the Cloud IoT Core page.
-
-You've just created a device registry with a Cloud Pub/Sub topic for publishing device telemetry events.
-
-## Create role and credentials
-
-1. Go to the [GCP Roles page](https://console.cloud.google.com/iam-admin/roles)
-2. Click Create role
-3. Name it `Create IoT Device`
-4. Click Add permission
-5. Enter `cloudiot.devices.create` and save
-6. Go to the [GCP Credentials page](https://console.cloud.google.com/apis/credentials)
-7. Click Create Credentials and select `Service account key` from the drop down
-8. Create a new service account, and assign _only_ the `Create IoT Device` role to it, this limited scope is required as these credentials will be available on the device, and could potentially get exposed if the device is physically compromised
-9. Download the credentials json file
-
-## Set up your balena application's environment
-Go to the [balena dashboard](https://dashboard.balena-cloud.com/apps) and create or select your project
-
-Click Environment Variables and create the following keys and matching values:
-1. `GOOGLE_IOT_PROJECT` and enter the Project Id for your GCP Project, you can find that on the [GCP Home page](https://console.cloud.google.com/home)
-2. `GOOGLE_IOT_REGION` and enter the GCP region you selected above (`us-central1`)
-3. `GOOGLE_IOT_REGISTRY` and enter the device registry name you've selected above (`my-registry`)
-4. `GOOGLE_IOT_SERVICE_JSON` and paste the entire content of the credentials json file you've downloaded above as value
-
-## Provision your device
-
-You're now ready to provision your balena device and push the code to the application. Once it's started up it'll automatically register it's self with Google Cloud IoT as a device, and allow you to push telemetry data to the pubsub channel you've created.
-
-## Viewing published messages
-
-Once the device is online, the sample app will start pushing event messages with the CPU load and memory usage for the
-device, which will be visible in the logs viewer in the balena dashboard.
-
-You can retrieve and view published messages from Pub/Sub using the gcloud CLI:
-1. Go to the GCP Pub/Sub page and click on `my-device-events` topic.
-2. Click `Create Subscription` in the top toolbar.
-3. Enter `my-subscription` as the subscription name.
-4. Click Create.
-
-You can then view the messages by running the following command in your terminal, replacing PROJECT_ID with your project ID:
-
-```
-# gcloud pubsub subscriptions pull --limit 100 --auto-ack projects/PROJECT_ID/subscriptions/my-subscription
+# If you don't have npm
+./scripts/gcp-setup.sh
 ```
 
-## Next steps
+When the script execution is completed, note down the value of the following variables: `GOOGLE_IOT_PROJECT`, `GOOGLE_IOT_REGION`, `GOOGLE_IOT_REGISTRY`, `GOOGLE_IOT_SERVICE_ACCOUNT_TOKEN`. We will need to add them to our devices later.
 
-Build your own application using this sample app, or the Google samples for C, Java, NodeJS and Python available at https://cloud.google.com/iot/docs/samples/mqtt-samples
+The output of the script will look like this:
+```bash
+*** Export env variables ***
+Setup completed, add the following env variables to your target:
+GOOGLE_IOT_PROJECT=balena-gcp
+GOOGLE_IOT_REGION=us-central1
+GOOGLE_IOT_REGISTRY=balena-registry
+GOOGLE_IOT_SERVICE_ACCOUNT_TOKEN=<YOUR_SERVICE_ACCOUNT_KEY_JSON_FORMATED>
+```
 
-When building your app, or using one of the samples, use the private key available at `/data/rsa-priv.pem`, and `GOOGLE_IOT_REGION, GOOGLE_IOT_PROJECT and GOOGLE_IOT_REGISTRY`
-environment variables to configure your client.
+## 2. Create balenaCloud application
+
+If this is your first time using balena, we recommend going through the [getting started tutorial](https://www.balena.io/docs/learn/getting-started/raspberrypi3/nodejs/).
+
+You'll need to:
+* Sign up for or login to the [balenaCloud dashboard](https://dashboard.balena-cloud.com)
+* Create an application, selecting the correct device type for your hardware device (Raspberry Pi, Intel NUC, etc)
+* Add a device to the application, enabling you to download the OS
+* Flash the downloaded OS to your SD card with [balenaEtcher](https://balena.io/etcher)
+* Power up the device and check it's online in the dashboard
+
+## 3. Provision your device
+
+You're now ready to provision your balena device and push your application's code.
+From the project's directory run:
+```bash
+balena push <appName>
+```
+where `<appName>` is the name you gave your balenaCloud application in the first step.
+
+## 4. Configure environment variables
+
+Once the app gets deployed to your device you'll see errors on the logs and possibly the main service will restart itself. This is because we have not configured the required environment variables yet.
+
+You need to create the following env variables and assign them the values you got from the script on step 1:
+- `GOOGLE_IOT_PROJECT`
+- `GOOGLE_IOT_REGION`
+- `GOOGLE_IOT_REGISTRY`
+- `GOOGLE_IOT_SERVICE_ACCOUNT_TOKEN`
+
+To do so, you have two alternatives:
+- Add them using the balenaCloud dashboard (more information [here](https://www.balena.io/docs/learn/manage/serv-vars/))
+- Add them using the `balena-cli` by running `balena env add <ENV_VAR_NAME> <ENV_VAR_VALUE> --application <appName>`
+
+Either way, once you add all env variables the main service will restart. Once it's started up again it'll automatically register itself with Google Cloud IoT as a device, and start pushing telemetry data to the pubsub channel you've created.
+
+# Verifying the data pipeline
+Here is a quick way of verifying the data pipeline works in both ways. If you are having trouble you can reach us on our [forums](https://forums.balena.io/) or open an issue on this repository.
+
+
+## Device to IoT Core
+You can verify the telemetry data is going all the way to PubSub by tapping into the testing subscription that we created on step 1. 
+
+To do this:
+- Visit the PubSub [subscriptions](https://console.cloud.google.com/cloudpubsub/subscription) page
+- Click on your subscription, then `View Messages` and finally `PULL`
+
+It might take a minute or so for the data to show up on the subscription.
+
+## IoT Core to device
+To verify that `config` messages sent by IoT Core are reaching the device we can send a test message:
+- Visit the [IoT Core](https://console.cloud.google.com/iot/registries) page
+- Click on your registry, then go to devices and click on your device
+- Click on the `UPDATE CONFIG` button and send a test message
+
+You should se the message printed on your device's log.
+
+
+# Next steps
+
+This project provides an easy way of getting started with the balenaOS + IoT Core combo. For more complex applications you can build your own using this sample app as the basis, or the Google samples for C, Java, NodeJS and Python available at https://cloud.google.com/iot/docs/samples/mqtt-samples
 
 An overview of Google's cloud services that can be used to ingest, transform, and run analytics on the data is available at: https://cloud.google.com/solutions/iot-overview
