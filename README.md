@@ -19,7 +19,7 @@ We've split the installation instructions in 4 different steps:
 3. Provision your device
 4. Configure environment variables
 
-## 1. Create and configure Google Cloud Platform (GCP) project
+## 1. Create and configure Google Cloud Platform (GCP) project
 
 ### Before you begin
 Before you begin you will need to create a GCP account and a billing account. The following links will help you get started with that:
@@ -28,7 +28,7 @@ Before you begin you will need to create a GCP account and a billing account. Th
 
 Note that you *don't* need a credit card to get started if you opt for the free trial.
 
-### GCP setup script
+### GCP setup script
 The process of setting up the required GCP products is a bit involved. For your convenience we created a script that automates all of the steps needed. You can review the source code of this script [here](scripts/gcp-setup.sh). If you are not comfortable running the script, you can check out [this](GCPManualSetup.md) step by step guide, it will walk you through manually configuring all that is needed.
 
 This are all the steps that the script performs for you:
@@ -116,7 +116,7 @@ To do this:
 
 It might take a minute or so for the data to show up on the subscription.
 
-## IoT Core to device
+## IoT Core to device
 To verify that `config` messages sent by IoT Core are reaching the device we can send a test message:
 - Visit the [IoT Core](https://console.cloud.google.com/iot/registries) page
 - Click on your registry, then go to devices and click on your device
