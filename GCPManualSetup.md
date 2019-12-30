@@ -19,9 +19,9 @@
 7. In the Create a topic dialog, enter `balena-telemetry-topic` in the Name field.
 8. Click Create in the Create a topic dialog.
 9. In the State topic dropdown list, select Create a topic.
-9. In the Create a topic dialog, enter `balena-state-topic` in the Name field.
-10. Click Create in the Create a topic dialog.
-11. Click Create on the Cloud IoT Core page.
+10. In the Create a topic dialog, enter `balena-state-topic` in the Name field.
+11. Click Create in the Create a topic dialog.
+12. Click Create on the Cloud IoT Core page.
 
 You've just created a device registry with a Cloud Pub/Sub topic for publishing device telemetry events.
 
@@ -34,6 +34,14 @@ You've just created a device registry with a Cloud Pub/Sub topic for publishing 
 5. On the Roles dropdown add the following: Cloud IoT Provisioner and Pub/Sub Publisher
 6. Click Continue
 7. Click Create Key to create JSON keys for your service account.
-8. Download the credentials JSON file and click Done to complete te setup.
+8. Download the credentials JSON file and click Done to complete the setup.
 
-The contents of the credentials JSON file will be your `GOOGLE_IOT_SERVICE_ACCOUNT_TOKEN` variable. 
+The contents of the credentials JSON file will be your `GOOGLE_IOT_SERVICE_ACCOUNT_TOKEN` variable.
+
+## Optional: Create subscription for testing
+
+1. Visit the [PubSub][https://console.cloud.google.com/cloudpubsub/subscription] subscriptions page
+2. Click Create Subscription
+3. Enter `balena-telemetry-test-sub` for the Subscription ID
+4. Enter `projects/balenaio/topics/balena-telemetry-topic` for the Topic name
+5. Leave the other settings at the default values and click Create
