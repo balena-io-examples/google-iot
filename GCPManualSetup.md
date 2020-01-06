@@ -40,7 +40,7 @@ The contents of the credentials JSON file will be your `GOOGLE_IOT_SERVICE_ACCOU
 
 ## Optional: Create subscription for testing
 
-1. Visit the [PubSub][https://console.cloud.google.com/cloudpubsub/subscription] subscriptions page
+1. Visit the [PubSub](https://console.cloud.google.com/cloudpubsub/subscription) subscriptions page
 2. Click Create Subscription
 3. Enter `balena-telemetry-test-sub` for the Subscription ID
 4. Enter `projects/balenaio/topics/balena-telemetry-topic` for the Topic name

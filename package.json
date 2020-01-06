@@ -1,5 +1,6 @@
 {
   "name": "balena-google-iotcore",
+  "private": true,
   "version": "0.0.2",
   "description": "Sample project showcasing Google IoT Core integration with balena",
   "main": "index.js",
