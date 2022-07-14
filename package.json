@@ -1,7 +1,7 @@
 {
   "name": "balena-google-iotcore",
   "private": true,
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Sample project showcasing Google IoT Core integration with balena",
   "main": "index.js",
   "dependencies": {
@@ -32,5 +32,8 @@
   "bugs": {
     "url": "https://github.com/balena-io-projects/google-iot/issues"
   },
-  "homepage": "https://github.com/balena-io-projects/google-iot#readme"
+  "homepage": "https://github.com/balena-io-projects/google-iot#readme",
+  "versionist": {
+    "publishedAt": "2022-07-14T11:46:14.192Z"
+  }
 }
