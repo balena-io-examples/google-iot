@@ -1,3 +1,5 @@
+**For balena's current cloud integration tools, see the [Provision with cloud IoT](https://www.balena.io/docs/learn/develop/cloud-iot-provisioning/gcp/) docs, [gcp-iot-provision](https://github.com/balena-io-examples/gcp-iot-provision) repo, and [cloud-relay](https://github.com/balena-io-examples/cloud-relay) repo.**
+
 # Google Cloud IoT integration with balena
 
 While the [balena](https://www.balena.io/what-is-balena) platform allows you to build, deploy, and manage fleets of devices, it has no interaction with the fleet's application at the data layer. This is where Google's IoT Core offering can be utilized.
