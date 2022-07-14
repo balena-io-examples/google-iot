@@ -165,7 +165,7 @@ echo "Created PubSub telemetry topic: $GCP_STATE_TOPIC"
 ##################################
 echo -e "\n*** GCP PubSub: Create test subscription to telemetry topic ***"
 GCP_SUB_TEST="balena-telemetry-test-sub"
-$GCLOUD_COMMIT && gcloud_slow pubsub subscriptions create --topic ​$GCP_TELEMETRY_TOPIC​ $GCP_SUB_TEST
+$GCLOUD_COMMIT && gcloud_slow pubsub subscriptions create --topic $GCP_TELEMETRY_TOPIC $GCP_SUB_TEST
 echo "Created PubSub test subscription: $GCP_SUB_TEST"
 
 ##################################
